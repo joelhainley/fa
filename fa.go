@@ -14,24 +14,26 @@ import (
 file attributes values
 t - file type
 n - file name
-s - [x] - size [x] human readable etc..
+s - size
 o - owner
 g - group
 w - world (other)
 
  */
-const DEFAULT_OUTPUT_TEMPLATE = "%t.%s.%n"
+const DEFAULT_OUTPUT_FORMAT = "%t.%s.%n"
 
-//var offsetPrefix string
-//var itemGlyph string
-//var lastItemGlyph string
-//var lineContGlyph string
 var debugMode bool
-//var format string
+var format string
+
+/** TODO
+* tokenizer for the format string
+*
+ */
 
 func main() {
 	// setup the flags
 	flag.BoolVar(&debugMode, "debug", false, "turn on debug mode")
+	flag.StringVar(&format, "format", DEFAULT_OUTPUT_FORMAT, "set the output format")
 	flag.Parse()
 
 	if debugMode {
@@ -41,7 +43,7 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
-		fileInfo := dumpFileAttributes(scanner.Text(), DEFAULT_OUTPUT_TEMPLATE)
+		fileInfo := dumpFileAttributes(scanner.Text(), format)
 		fmt.Printf("> %s\n", fileInfo)
 	}
 }
@@ -62,8 +64,10 @@ func dumpFileAttributes(filepath string, format string) string {
 	output := strings.ReplaceAll(format, "%t", fileType)
 	output = strings.ReplaceAll(output, "%n", fileInfo.Name())
 
-	if fileInfo.IsDir(){
+	if !fileInfo.IsDir(){
 		output = strings.ReplaceAll(output, "%s", strconv.FormatInt(fileInfo.Size(), 10))
+	} else {
+		output = strings.ReplaceAll(output, "%s", "0")
 	}
 
 	return output
